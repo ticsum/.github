@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 
 const allowedFiles = new Set([
+  '.codegraph/.gitignore',
   '.github/workflows/public-governance.yml',
   'README.md',
   'profile/README.md',
