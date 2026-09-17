@@ -1,104 +1,69 @@
-# StarChaser Framework
+# Ticsum
 
-StarChaser Framework is a modular software ecosystem for building configurable business applications from reusable technical foundations while keeping each application in control of its own business meaning.
+Ticsum is a modular ecosystem for building, operating, and presenting configurable business applications with explicit boundaries between product behavior, technical foundations, reusable interfaces, and graphical clients.
 
-## What StarChaser Framework Is
+## Architecture
 
-StarChaser Framework explores how complex business software can be composed from explicit, independently evolving capabilities instead of rebuilding the same runtime, interface, integration, and document-processing concerns in every application.
+```text
+ticsum/
+├── toolkit
+├── platform
+├── ui
+└── app
+```
 
-The ecosystem separates product semantics from reusable technical foundations so applications can adopt common capabilities without forcing those foundations to know the application's domain.
+The organization package scope is `@ticsum/*`.
 
-## The Problem
+### Toolkit
 
-Business applications repeatedly need the same classes of capability:
+Ticsum Toolkit provides product-neutral technical foundations for lifecycle, HTTP, providers, identity, jobs, observability, and runtime composition. Its portable capabilities are public entry points of `@ticsum/toolkit`; separate packages exist only when a real dependency or runtime boundary requires them.
 
-- backend and runtime infrastructure;
-- provider and integration boundaries;
-- data-rich interface systems;
-- document and template automation;
-- configurable application composition;
-- structured workflows and operational behavior.
+### Platform
 
-When those concerns are tightly coupled to one product, reuse becomes difficult and internal changes spread across the entire system. When they are made too generic, business meaning becomes fragmented or lost.
+Ticsum Platform is a headless business application platform. It owns business/domain behavior, products and resources, Application Operations, authoritative authorization, provider coordination, persistence boundaries, API runtime, workers, and framework-neutral Application Experience metadata.
 
-## The Approach
+The public Platform contract is its HTTP/API protocol. JavaScript and TypeScript consumers may use `@ticsum/platform-client`; other consumers may use the protocol directly. Graphical clients do not import Platform internals or connect directly to its persistence for canonical business operations.
 
-StarChaser Framework uses explicit product boundaries and consumer-to-dependency contracts. Business applications retain ownership of business concepts and workflows, while reusable foundations own technical capabilities that can remain independent from any single application.
+### UI
 
-The result is an architecture intended to support independent evolution, replaceable integrations, reusable interaction patterns, and clear responsibility boundaries.
+Ticsum UI is a provider-neutral, multi-package presentation system. Supported `@ticsum/ui-*` packages provide primitives, components, layouts, systems, blocks, charts, icons, localization, styles, and theme capabilities without depending on Platform.
 
-## Core Capabilities
+### App
 
-- configurable business application composition;
-- reusable backend/runtime contracts and adapters;
-- reusable application UI and interaction systems;
-- provider-neutral integration boundaries;
-- structured resource and workflow modeling;
-- document and template inspection, generation, and processing;
-- CLI, API, worker, and application execution surfaces;
-- architecture and dependency-boundary validation.
+Ticsum App is the canonical graphical application. It combines Nuxt, `@ticsum/platform-client`, and `@ticsum/ui-*` packages to provide routing, application shell, session UX, screen composition, request orchestration, and presentation state.
 
-## Example Use Cases
+App is a consumer of Platform, not part of Platform. Business policy, authorization, persistence, provider implementations, operations, and domain mutations remain server-owned.
 
-- configurable operations and work-management applications;
-- internal business platforms with different enabled capability sets;
-- data-heavy dashboards and administrative interfaces;
-- applications that need replaceable infrastructure providers;
-- document/template automation for single or bulk generation;
-- reusable backend or UI foundations shared by multiple products.
-
-## Products
-
-### Polaris
-
-Polaris is the business application platform. It owns business semantics, configurable resources, workflows, workspaces, permissions, provider bindings, product features, and application composition.
-
-### Orion
-
-Orion is the product-neutral backend and runtime foundation. It provides reusable lifecycle, HTTP, provider, persistence, identity, job/worker, observability, and runtime contracts without owning application-specific business meaning.
-
-### Astral UI
-
-Astral UI is the reusable application interface and interaction system. It provides primitives, components, layouts, systems, blocks, data views, editors, navigation, and other reusable presentation behavior without owning consumer business semantics.
-
-### Docsmith
-
-Docsmith is a standalone document and template automation product. It provides template inspection, structured document generation, CLI/API behavior, persistence and provenance, and reusable document-processing capabilities.
-
-## High-Level Architecture
+## High-level dependency direction
 
 ```mermaid
 flowchart LR
-    Users["Users / Operators"]
-    Applications["Business Applications"]
-    Capabilities["Business Capabilities"]
-    Experience["Application Experience"]
-    Runtime["Reusable Runtime Foundations"]
-    Interfaces["Interface Systems"]
-    Documents["Document Automation"]
-    Integrations["Integrations"]
-
-    Users -->|"use"| Applications
-    Applications -->|"compose"| Capabilities
-    Applications -->|"present through"| Experience
-    Applications -->|"consume runtime capabilities from"| Runtime
-    Experience -->|"composes reusable interaction patterns from"| Interfaces
-    Applications -->|"use document workflows from"| Documents
-    Applications -->|"connect through"| Integrations
+    Users["Users / Operators"] -->|"use"| App["Ticsum App or custom client"]
+    App -->|"consumes"| Client["@ticsum/platform-client or HTTP API"]
+    Client -->|"invokes"| Platform["Ticsum Platform"]
+    App -->|"composes"| UI["Ticsum UI"]
+    Platform -->|"uses public foundations from"| Toolkit["Ticsum Toolkit"]
 ```
 
-The diagram is intentionally conceptual: it shows capability relationships rather than internal repository or package topology.
+Custom React, Nuxt, mobile, industrial, and machine clients may consume the same Platform protocol. They are not required to reproduce the canonical app UX or use Ticsum UI.
 
-## Engineering Principles
+## Deployment flexibility
 
-- Business meaning stays with the product that owns it.
-- Reusable foundations remain independent from consumer-specific semantics.
-- Dependency direction is explicit and validated.
-- Provider-specific technology is isolated behind contracts where practical.
-- Reusable capabilities are composed rather than duplicated.
-- Durable architecture documentation is kept aligned with supported behavior.
-- Security and supply-chain controls are treated as engineering constraints, not afterthoughts.
+Interface choice, hosting choice, persistence ownership, and provider ownership are independent decisions. Ticsum supports headless Platform deployments, the canonical Ticsum App, custom frontends, and existing-system integrations across customer-hosted, Ticsum-managed, and hybrid deployments.
 
-## Technologies & Engineering Areas
+Customer-managed persistence can remain under the customer's lifecycle and backup control while Platform stays the authoritative business-operation boundary. Provider credentials are configured server-side and never exposed to graphical clients.
 
-The ecosystem demonstrates work across TypeScript, Node.js, Vue, package/workspace architecture, HTTP APIs, CLI design, workers and jobs, persistence boundaries, provider adapters, document processing, UI systems, automated testing, CI/CD, supply-chain controls, and architecture validation.
+## Engineering principles
+
+- Business meaning stays with Platform products and Application Operations.
+- Reusable technical foundations stay product-neutral.
+- Reusable UI stays provider-neutral and independent from Platform.
+- Public package APIs are defined by `package.json#exports`.
+- Cross-package relative imports and physical `src` deep imports are prohibited.
+- Provider-specific technology stays behind explicit server-side contracts and adapters.
+- Graphical clients own presentation policy, not authoritative business or authorization policy.
+- Security, observability, testing, and supply-chain controls are engineering constraints.
+
+## Engineering areas
+
+The ecosystem spans TypeScript, Node.js, Nuxt, Vue, package/workspace architecture, HTTP APIs, workers and jobs, persistence boundaries, provider adapters, reusable UI systems, automated testing, CI/CD, supply-chain controls, and architecture validation.
